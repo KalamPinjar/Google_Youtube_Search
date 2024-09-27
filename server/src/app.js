@@ -1,9 +1,16 @@
 import express from "express";
-import apitest from "./routes/api.js";
+import getGoogleSearch from "./routes/GET_GOOGLE_SEARCH_route.js";
 import cors from "cors";
+import bodyParser from "body-parser";
+import helmet from "helmet";
+import getYoutubeSearch from "./routes/GET_YOUTUBE_SEARCH_route.js";
+
 export const app = express();
 
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-app.use(express.json());
-app.use("/api", apitest);
+app.use(bodyParser.json());
+app.use(helmet());
+
+app.use("/googleSearch", getGoogleSearch);
+app.use("/youtubeSearch", getYoutubeSearch);
