@@ -1,9 +1,10 @@
 import express from "express";
-import getGoogleSearch from "./routes/GET_GOOGLE_SEARCH_route.js";
 import cors from "cors";
 import bodyParser from "body-parser";
 import helmet from "helmet";
+import getGoogleSearch from "./routes/GET_GOOGLE_SEARCH_route.js";
 import getYoutubeSearch from "./routes/GET_YOUTUBE_SEARCH_route.js";
+import getScholarSearch from "./routes/GET_SCHOLAR_SEARCH_route.js";
 
 export const app = express();
 
@@ -14,3 +15,4 @@ app.use(helmet());
 
 app.use("/googleSearch", getGoogleSearch);
 app.use("/youtubeSearch", getYoutubeSearch);
+app.use("/scholarSearch", getScholarSearch);

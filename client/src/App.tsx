@@ -8,7 +8,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <SearchProviderComponent>
-        <div className="flex flex-col justify-center items-start w-full min-h-screen">
+        <div className="flex flex-col justify-start items-start w-full min-h-screen overflow-hidden">
           <SearchBar />
         </div>
       </SearchProviderComponent>
