@@ -13,6 +13,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(helmet());
 
+app.get("/", (req, res) => {
+    res.send("Hello World!");
+});
 app.use("/googleSearch", getGoogleSearch);
 app.use("/youtubeSearch", getYoutubeSearch);
 app.use("/scholarSearch", getScholarSearch);
