@@ -80,9 +80,11 @@ This will use `concurrently` to run both the server and client simultaneously.
 - **CORS Issues:** If you face Cross-Origin Resource Sharing (CORS) issues, make sure to configure your server to allow requests from your client’s origin. You can use the `cors` middleware in Express.
 
 ### TanStack Usage
+
 In this project, we utilized TanStack for efficient data fetching and state management. TanStack allows us to handle asynchronous queries seamlessly, providing features such as caching and automatic refetching. This helped improve the user experience by ensuring that the search results were always up-to-date while minimizing unnecessary network requests. The integration of TanStack has significantly simplified the process of managing the application's state and fetching data from the server.
 
 ### Difficulties Faced
+
 While developing this project, we encountered several challenges:
 
 1. **Debouncing Implementation**: We needed to implement a custom `useDebounce` hook to prevent excessive API calls during user input. This was essential for enhancing performance and avoiding rate-limiting issues with the search API.
@@ -94,6 +96,34 @@ While developing this project, we encountered several challenges:
 4. **Concurrent Execution**: Running both the client and server simultaneously with a single command using `concurrently` required precise script management. We had to ensure that the server was fully started before the client could send requests, which sometimes caused timing issues.
 
 These challenges helped us learn more about React's state management, performance optimization, and best practices for building responsive applications.
+
+## .env_example structure
+
+> Server
+
+```bash
+PORT=3000
+GOOGLE_API_KEY=YOUR_KEY_HERE
+GOOGLE_CX=YOUR_CUSTOME_GOOGLE_CX_KEY_HERE
+URL_GOOGLE_SEARCH=https://www.googleapis.com/customsearch/v1
+URL_YOUTUBE_SEARCH=https://www.googleapis.com/youtube/v3/search
+URL_YOUTUBE_IFRAME_SEARCH=https://www.googleapis.com/youtube/v3/videos
+URL_SCHOLAR_SEARCH=https://serpapi.com/search.json?engine=google_scholar
+SCHOLAR_API_KEY=YOUR_SCHOLAR_API_KEY_HERE
+```
+
+> Client
+
+```bash
+VITE_GOOGLE_API_KEY=YOUR_KEY_HERE
+VITE_SCHOLAR_API_KEY=YOUR_SCHOLAR_API_KEY_HERE
+VITE_GOOGLE_CX=YOUR_CUSTOME_GOOGLE_CX_KEY_HERE
+VITE_URL_GOOGLE_SEARCH=https://www.googleapis.com/customsearch/v1
+VITE_URL_YOUTUBE_SEARCH=https://www.googleapis.com/youtube/v3/search
+VITE_URL_YOUTUBE_IFRAME_SEARCH=https://www.googleapis.com/youtube/v3/videos
+VITE_URL_SCHOLAR_SEARCH=https://serpapi.com/search.json?engine=google_scholar
+VITE_SERVER_URL=http://localhost:3000
+```
 
 ## Contributing
 
