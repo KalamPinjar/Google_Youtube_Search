@@ -11,18 +11,19 @@ export const fetchSearchResults = async ({
   input: string;
   isGoogle: boolean;
   isYoutube?: boolean;
-}): Promise<SearchResponse> => {
+}): Promise<SearchResponse | null> => {
   const start = (pageNumber - 1) * 10; // For pagination
   let endpoint = isGoogle ? "googleSearch" : "youtubeSearch";
 
   if (!isGoogle && isYoutube) {
-
     endpoint = "youtubeSearch";
   } else if (!isGoogle && !isYoutube) {
-
     endpoint = "scholarSearch";
   }
-  // console.log('Fetching results with:', { pageNumber, input, isGoogle, isYoutube });
+
+  if (!input) {
+    return null; // Do not fetch if there is no input
+  }
 
   try {
     const response: AxiosResponse<SearchResponse> = await axios.post(

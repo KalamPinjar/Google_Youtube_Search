@@ -2,19 +2,10 @@ import { Search, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { ModeToggle } from "./mode-toggle";
-import { useContext, useState, useEffect } from "react";
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
-import {
-  SearchProvider,
-  SearchProviderState,
-} from "@/provider/search-provider";
+import { useSearchStore } from "@/provider/search-provider";
 import { useQuery } from "@tanstack/react-query";
-import {
-  GoogleScholarApiResponse,
-  GoogleSearchResponse,
-  SearchResponse,
-  YoutubeSearchResponse,
-} from "@/types/searchType";
 import { fetchSearchResults } from "@/query/fetchPageResult";
 import ResultsGoogle from "./ResultsGoogle";
 import ResultsYoutube from "./ResultsYoutube";
@@ -22,46 +13,50 @@ import ResultsScholar from "./ResultsScholar";
 import useDebounce from "@/hook/useDebounce";
 import { CustomPagination } from "./pagination";
 import { Separator } from "./ui/separator";
+import {
+  GoogleScholarApiResponse,
+  GoogleSearchResponse,
+  SearchResponse,
+} from "@/types/searchType";
 
 function SearchBar() {
   const {
-    isGoogle,
-    setIsGoogle,
-    isYoutube,
-    setIsYoutube,
     input,
     setInput,
-    setCurrentPage,
+    activeTab,
+    setTab,
     currentPage,
-  } = useContext(SearchProvider) as SearchProviderState;
+    setCurrentPage,
+    searchResults,
+    setSearchResults, // Get the setter directly for clarity
+  } = useSearchStore();
 
-  const debouncedInput = useDebounce({ value: input, delay: 800 });
-  const [fetchedData, setFetchedData] = useState<SearchResponse | undefined>(
-    undefined
-  );
+  // Debouncing the input for delayed API calls
+  const debouncedInput = useDebounce({ value: input, delay: 1000 }); // Changed to ensure proper value is passed
 
-  const { data, error, isLoading, refetch } = useQuery<SearchResponse, Error>({
-    queryKey: ["searchResults", debouncedInput, currentPage],
+  // Adjust query options to prevent unnecessary requests
+  const { data, error, isLoading, refetch } = useQuery({
+    queryKey: ["searchResults", debouncedInput, activeTab, currentPage],
     queryFn: () =>
       fetchSearchResults({
         pageNumber: currentPage,
         input: debouncedInput,
-        isGoogle,
-        isYoutube,
+        isGoogle: activeTab === "google",
+        isYoutube: activeTab === "youtube",
       }),
-    enabled: !!debouncedInput, // Only fetch if there is input
+    enabled: !!debouncedInput && activeTab !== "youtube", // Prevent unnecessary requests in YouTube tab
     staleTime: 1000 * 60 * 5,
   });
 
   useEffect(() => {
     if (data) {
-      setFetchedData(data);
+      setSearchResults(data as SearchResponse); // Ensure we're using the setter correctly
     }
 
     if (error) {
       console.error("Error fetching search results:", error);
     }
-  }, [data, error]);
+  }, [data, error, activeTab, setSearchResults]); // Added setSearchResults for completeness
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -70,7 +65,7 @@ function SearchBar() {
   const handleSearchClick = () => {
     if (input) {
       setCurrentPage(1);
-      refetch(); // Trigger search on button click
+      refetch();
     }
   };
 
@@ -82,18 +77,23 @@ function SearchBar() {
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
-    refetch(); // Refetch results on page change
+    refetch();
+  };
+
+  const handleTabChange = (tab: "google" | "youtube" | "scholar") => {
+    setTab(tab);
+    setInput(""); // Clear input on tab change
   };
 
   return (
     <>
       <div className="flex flex-col p-4 border-b w-full">
-        <div className="relative flex items-center p-2 w-[400px]">
+        <div className="relative flex items-center p-2 w-[400px] lg:w-[600px]">
           <img
             src={
-              isGoogle
+              activeTab === "google"
                 ? "https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png"
-                : isYoutube
+                : activeTab === "youtube"
                 ? "https://www.freeiconspng.com/thumbs/youtube-logo-png/hd-youtube-logo-png-transparent-background-20.png"
                 : "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Google_Scholar_logo.svg/2048px-Google_Scholar_logo.svg.png"
             }
@@ -103,15 +103,11 @@ function SearchBar() {
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyPress}
-            className="border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 pl-12 border rounded-full w-[400px] h-10"
+            className="border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 pl-12 border rounded-full w-full h-10"
             type="text"
-            placeholder={
-              isGoogle
-                ? "Google Search"
-                : isYoutube
-                ? "Youtube Search"
-                : "Scholar Search"
-            }
+            placeholder={`${
+              activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+            } Search`}
           />
           <Label
             htmlFor="search"
@@ -128,52 +124,41 @@ function SearchBar() {
             <X
               onClick={() => {
                 setInput("");
-                setFetchedData(undefined);
+                if (activeTab === "google") searchResults.google = null;
+                else if (activeTab === "youtube") searchResults.youtube = null;
+                else if (activeTab === "scholar") searchResults.scholar = null;
               }}
               className="hover:bg-gray-100 ml-2 p-1 rounded-full w-8 h-8 text-gray-500 cursor-pointer"
             />
           </Label>
         </div>
 
-        {/* Select Type Section */}
         <div className="flex justify-start items-center gap-2 mt-2 font-mono text-sm">
           <p className="tracking-tight">Select Type:</p>
           <span
             className={cn(
               "cursor-pointer px-2 py-1 text-sm rounded text-gray-500",
-              { "bg-gray-100": isGoogle }
+              { "bg-gray-100": activeTab === "google" }
             )}
-            onClick={() => {
-              setIsGoogle(true);
-              setIsYoutube(false);
-              refetch(); // Refetch to update the results for Google
-            }}
+            onClick={() => handleTabChange("google")}
           >
             Google
           </span>
           <span
             className={cn(
               "cursor-pointer px-2 py-1 text-sm rounded text-gray-500",
-              { "bg-gray-100": isYoutube }
+              { "bg-gray-100": activeTab === "youtube" }
             )}
-            onClick={() => {
-              setIsGoogle(false);
-              setIsYoutube(true);
-              refetch(); // Refetch to update the results for YouTube
-            }}
+            onClick={() => handleTabChange("youtube")}
           >
             Youtube
           </span>
           <span
             className={cn(
               "cursor-pointer px-2 py-1 text-sm rounded text-gray-500",
-              { "bg-gray-100": !isGoogle && !isYoutube }
+              { "bg-gray-100": activeTab === "scholar" }
             )}
-            onClick={() => {
-              setIsGoogle(false);
-              setIsYoutube(false);
-              refetch(); // Refetch to update the results for Scholar
-            }}
+            onClick={() => handleTabChange("scholar")}
           >
             Scholar
           </span>
@@ -184,36 +169,33 @@ function SearchBar() {
         </div>
       </div>
 
-      {isGoogle && !isYoutube ? (
+      {activeTab === "google" && searchResults.google && (
         <ResultsGoogle
-          data={fetchedData as GoogleSearchResponse}
+          data={searchResults.google as GoogleSearchResponse | null}
           error={error}
           isLoading={isLoading}
         />
-      ) : isYoutube && !isGoogle ? (
-        <ResultsYoutube
-          input={input}
-          fetchedData={fetchedData as YoutubeSearchResponse}
-        />
-      ) : (
-        !isGoogle &&
-        !isYoutube && (
-          <ResultsScholar
-            input={input}
-            fetchedData={fetchedData as GoogleScholarApiResponse}
-            error={error}
-          />
-        )
       )}
-      {(fetchedData &&
-        (fetchedData as GoogleScholarApiResponse).organic_results?.length >
-          0) ||
-      (isGoogle && fetchedData) ? (
+      {activeTab === "youtube" && searchResults.youtube && (
+        <ResultsYoutube
+          input={debouncedInput}
+          fetchedData={searchResults.youtube}
+        />
+      )}
+      {activeTab === "scholar" && searchResults.scholar && (
+        <ResultsScholar
+          input={debouncedInput} // Changed to use debouncedInput here as well
+          fetchedData={searchResults.scholar as GoogleScholarApiResponse | null}
+          error={error}
+        />
+      )}
+
+      {searchResults[activeTab] && data && (
         <CustomPagination
           currentPage={currentPage}
           onPageChange={handlePageChange}
         />
-      ) : null}
+      )}
     </>
   );
 }

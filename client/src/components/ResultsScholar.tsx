@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface ResultsProps {
   input: string;
-  fetchedData: GoogleScholarApiResponse | undefined;
+  fetchedData: GoogleScholarApiResponse | null;
   error: Error | null;
 }
 

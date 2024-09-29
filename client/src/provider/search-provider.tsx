@@ -1,40 +1,62 @@
-import { createContext, useState } from "react";
+import { SearchResponse } from "@/types/searchType";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export type SearchProviderState = {
-  isGoogle: boolean;
-  setIsGoogle: (prevState: boolean) => void;
-  isYoutube: boolean;
-  setIsYoutube: (prevState: boolean) => void;
+interface SearchStoreState {
   input: string;
-  setInput: (prevState: string) => void;
   currentPage: number;
+  activeTab: "google" | "youtube" | "scholar";
+  isGoogle: boolean; // Add this line
+  isYoutube: boolean; // Add this line
+  searchResults: {
+    google: SearchResponse | null;
+    youtube: SearchResponse | null;
+    scholar: SearchResponse | null;
+  };
+  setInput: (input: string) => void;
   setCurrentPage: (page: number) => void;
-};
+  setTab: (tab: "google" | "youtube" | "scholar") => void;
+  setIsGoogle: (value: boolean) => void; // Add this line
+  setIsYoutube: (value: boolean) => void; // Add this line
+  setSearchResults: (results: SearchResponse) => void;
+}
 
-export const SearchProvider = createContext<SearchProviderState | null>(null);
-
-export const SearchProviderComponent: React.FC<{
-  children: React.ReactNode;
-}> = ({ children }) => {
-  const [isGoogle, setIsGoogle] = useState<boolean>(true);
-  const [isYoutube, setIsYoutube] = useState<boolean>(false);
-  const [input, setInput] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-
-  return (
-    <SearchProvider.Provider
-      value={{
-        isGoogle,
-        setIsGoogle,
-        isYoutube,
-        setIsYoutube,
-        input,
-        setInput,
-        currentPage,
-        setCurrentPage,
-      }}
-    >
-      {children}
-    </SearchProvider.Provider>
-  );
-};
+export const useSearchStore = create<SearchStoreState>()(
+  persist(
+    (set) => ({
+      input: "",
+      currentPage: 1,
+      activeTab: "google",
+      isGoogle: true, // Initialize the state
+      isYoutube: false, // Initialize the state
+      searchResults: {
+        google: null,
+        youtube: null,
+        scholar: null,
+      },
+      setInput: (input: string) => set({ input }),
+      setCurrentPage: (page: number) => set({ currentPage: page }),
+      setTab: (tab: "google" | "youtube" | "scholar") => {
+        set({
+          activeTab: tab,
+          input: "",
+          currentPage: 1,
+          isGoogle: tab === "google", // Update isGoogle based on the tab
+          isYoutube: tab === "youtube", // Update isYoutube based on the tab
+        });
+      },
+      setIsGoogle: (value: boolean) => set({ isGoogle: value, isYoutube: false }), // Set Google state
+      setIsYoutube: (value: boolean) => set({ isYoutube: value, isGoogle: false }), // Set Youtube state
+      setSearchResults: (results: SearchResponse) =>
+        set((state: SearchStoreState) => ({
+          searchResults: {
+            ...state.searchResults,
+            [state.activeTab]: results,
+          },
+        })),
+    }),
+    {
+      name: "search-store", // name of the storage
+    }
+  )
+);

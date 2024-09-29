@@ -24,7 +24,7 @@ export type SearchResponse =
   | GoogleSearchResponse
   | YoutubeSearchResponse
   | GoogleScholarApiResponse;
-  
+
 export interface GoogleSearchResponse {
   kind: "customsearch#search"; // Discriminant field
   url: {
@@ -100,15 +100,16 @@ export interface PageInfo {
 }
 
 // Define the type for metadata of the search
+// Define the type for search metadata of the Google Scholar API response
 interface SearchMetadata {
-  id: string;
-  status: string;
-  json_endpoint: string;
-  created_at: string;
-  processed_at: string;
-  google_scholar_url: string;
-  raw_html_file: string;
-  total_time_taken: number;
+  id: string; // Unique identifier for the search
+  status: string; // Status of the search
+  json_endpoint: string; // JSON endpoint for the search
+  created_at: string; // Timestamp when the search was created
+  processed_at: string; // Timestamp when the search was processed
+  google_scholar_url: string; // URL to the Google Scholar page
+  raw_html_file: string; // URL to the raw HTML file
+  total_time_taken: number; // Total time taken for the search
 }
 
 // Define the type for search parameters

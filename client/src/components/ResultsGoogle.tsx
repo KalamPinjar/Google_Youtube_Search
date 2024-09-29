@@ -1,9 +1,9 @@
-import { BookOpenText, Loader2 } from "lucide-react";
+import {  Loader2, Search } from "lucide-react";
 import { SearchResponse } from "@/types/searchType";
 
 interface ResultsProps {
   isLoading: boolean;
-  data: SearchResponse | undefined;
+  data: SearchResponse | null;
   error: Error | null;
 }
 
@@ -11,7 +11,7 @@ function ResultsGoogle({ isLoading, data, error }: ResultsProps) {
   if (!data || data.kind !== "customsearch#search") {
     return (
       <div className="flex flex-col justify-start items-center opacity-50 mt-5 w-full">
-        <BookOpenText className="w-44 h-44" />
+        <Search className="w-44 h-44" />
         <p className="text-3xl">Start searching...</p>
       </div>
     );

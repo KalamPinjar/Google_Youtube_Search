@@ -17,7 +17,7 @@ import { SearchResponse, VideoItem } from "@/types/searchType";
 
 interface ResultsProps {
   input: string;
-  fetchedData: SearchResponse | undefined;
+  fetchedData: SearchResponse | null;
 }
 
 export default function ResultsYoutube({ input, fetchedData }: ResultsProps) {
@@ -28,7 +28,6 @@ export default function ResultsYoutube({ input, fetchedData }: ResultsProps) {
   const [order, setOrder] = useState("relevance");
   const [videoDuration, setVideoDuration] = useState("any");
 
-  
   const fetchYoutubeData = async ({ pageParam = "" }) => {
     const { data } = await axios.get(
       `${import.meta.env.VITE_URL_YOUTUBE_SEARCH}?key=${
@@ -48,9 +47,9 @@ export default function ResultsYoutube({ input, fetchedData }: ResultsProps) {
   } = useInfiniteQuery({
     queryKey: ["youtubeResults", input, order, videoDuration],
     queryFn: fetchYoutubeData,
-    getNextPageParam: (lastPage) => lastPage.nextPageToken ?? false,
-    initialPageParam: "", 
-    enabled: !!fetchedData,
+    getNextPageParam: (lastPage) => lastPage.nextPageToken ?? undefined, // Return undefined when there's no next page
+    initialPageParam: undefined, // Set initialPageParam to undefined
+    enabled: !!fetchedData && !!input,
     staleTime: 1000 * 60 * 5, 
   });
 
@@ -71,11 +70,10 @@ export default function ResultsYoutube({ input, fetchedData }: ResultsProps) {
   if (error) {
     return <p>Error: {error.message}</p>;
   }
+  
   return (
     <div className="p-4">
-
       <div className="flex justify-start items-start gap-4 mb-6">
-
         <ToggleGroup
           size={"sm"}
           type="single"
@@ -93,9 +91,6 @@ export default function ResultsYoutube({ input, fetchedData }: ResultsProps) {
           </ToggleGroupItem>
           <ToggleGroupItem value="rating" aria-label="Sort by rating">
             Rating
-          </ToggleGroupItem>
-          <ToggleGroupItem value="date" aria-label="Sort by date">
-            Date
           </ToggleGroupItem>
         </ToggleGroup>
 
@@ -125,7 +120,7 @@ export default function ResultsYoutube({ input, fetchedData }: ResultsProps) {
         <>
           <h2 className="mb-6 font-semibold text-2xl">YouTube Results: </h2>
           <div className="gap-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {data?.pages.map((page) =>
+            {data.pages.map((page) =>
               page.items.map((video: VideoItem) => (
                 <Card
                   key={video.id.videoId}
@@ -171,14 +166,14 @@ export default function ResultsYoutube({ input, fetchedData }: ResultsProps) {
           <p className="text-3xl">Start searching...</p>
         </div>
       )}
-      {data &&
-        data.pages.length > 0 && ( 
-          <div ref={ref} className="flex justify-center items-center py-6">
-            {isFetchingNextPage && (
-              <Loader2 className="w-10 h-10 animate-spin" />
-            )}
-          </div>
-        )}
+
+      {data && data.pages.length > 0 && ( 
+        <div ref={ref} className="flex justify-center items-center py-6">
+          {isFetchingNextPage && (
+            <Loader2 className="w-10 h-10 animate-spin" />
+          )}
+        </div>
+      )}
     </div>
   );
 }
