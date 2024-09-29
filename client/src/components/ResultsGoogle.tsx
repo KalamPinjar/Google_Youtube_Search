@@ -1,42 +1,60 @@
-import {  Loader2, Search } from "lucide-react";
-import { SearchResponse } from "@/types/searchType";
+import { Loader2, Search } from "lucide-react";
+import { GoogleSearchResponse } from "@/types/searchType";
 
 interface ResultsProps {
-  isLoading: boolean;
-  data: SearchResponse | null;
+  input: string;
+  fetchedData: GoogleSearchResponse | null;
   error: Error | null;
+  isLoading: boolean;
 }
 
-function ResultsGoogle({ isLoading, data, error }: ResultsProps) {
-  if (!data || data.kind !== "customsearch#search") {
+function ResultsGoogle({ isLoading, fetchedData, error, input }: ResultsProps) {
+  if (error) {
     return (
-      <div className="flex flex-col justify-start items-center opacity-50 mt-5 w-full">
+      <div className="flex flex-col justify-center items-center opacity-50 mt-5 w-full">
+        <p className="mt-4 text-3xl text-red-500">
+          Error fetching data: {error.message}
+        </p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center w-full h-screen">
+        <Loader2 className="w-10 h-10 animate-spin" />
+      </div>
+    );
+  }
+
+  if (
+    !input ||
+    !fetchedData ||
+    !fetchedData.items ||
+    fetchedData.items.length === 0
+  ) {
+    return (
+      <div className="flex flex-col justify-center items-center opacity-50 mt-5 w-full">
         <Search className="w-44 h-44" />
-        <p className="text-3xl">Start searching...</p>
+        <p className="mt-4 text-3xl">Start Researching...</p>
       </div>
     );
   }
 
   return (
     <div className="flex lg:flex-row flex-col justify-between items-start mt-4 px-4 w-full min-h-screen">
-      {isLoading && (
-        <div className="flex justify-center items-center w-full h-screen">
-          <Loader2 className="w-10 h-10 animate-spin" />
-        </div>
-      )}
-      {error && <p>Error fetching search results: {error.message}</p>}
-
       <div className="flex-1 mb-5 max-w-3xl">
-        {data && data.items && data.items.length > 0 && (
+        {fetchedData.items.length > 0 && (
           <>
             <div className="flex flex-col mb-4 text-gray-500 text-sm">
               <span className="mr-2">
-                About {data.searchInformation.formattedTotalResults} results (
-                {data.searchInformation.formattedSearchTime} seconds)
+                About {fetchedData.searchInformation.formattedTotalResults}{" "}
+                results ({fetchedData.searchInformation.formattedSearchTime}{" "}
+                seconds)
               </span>
             </div>
             <ul>
-              {data.items.map((item, index) => (
+              {fetchedData.items.map((item, index) => (
                 <li
                   key={index}
                   className="border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 mb-8 p-4 border-b transition-colors duration-200"
@@ -76,10 +94,10 @@ function ResultsGoogle({ isLoading, data, error }: ResultsProps) {
       </div>
 
       {/* Top Results section */}
-      {data && data.items.length > 0 && (
+      {fetchedData.items.length > 0 && (
         <div className="top-2 lg:flex flex-col border-gray-300 hidden ml-6 pl-4 border-l w-[430px]">
           <h3 className="mb-4 font-semibold text-lg">Top Results</h3>
-          {data.items.slice(0, 5).map((item, index) => (
+          {fetchedData.items.slice(0, 5).map((item, index) => (
             <div key={index} className="flex items-start mb-4">
               {item.pagemap?.cse_image && (
                 <img

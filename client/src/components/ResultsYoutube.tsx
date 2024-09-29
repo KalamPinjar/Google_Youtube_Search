@@ -167,7 +167,7 @@ export default function ResultsYoutube({ input, fetchedData }: ResultsProps) {
         </div>
       )}
 
-      {data && data.pages.length > 0 && ( 
+      {data && data.pages.length > 0 && input?.length > 0 && ( 
         <div ref={ref} className="flex justify-center items-center py-6">
           {isFetchingNextPage && (
             <Loader2 className="w-10 h-10 animate-spin" />

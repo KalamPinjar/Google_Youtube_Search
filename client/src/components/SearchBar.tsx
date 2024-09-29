@@ -28,11 +28,11 @@ function SearchBar() {
     currentPage,
     setCurrentPage,
     searchResults,
-    setSearchResults, // Get the setter directly for clarity
+    setSearchResults,
   } = useSearchStore();
 
   // Debouncing the input for delayed API calls
-  const debouncedInput = useDebounce({ value: input, delay: 1000 }); // Changed to ensure proper value is passed
+  const debouncedInput = useDebounce({ value: input, delay: 1000 });
 
   // Adjust query options to prevent unnecessary requests
   const { data, error, isLoading, refetch } = useQuery({
@@ -44,25 +44,26 @@ function SearchBar() {
         isGoogle: activeTab === "google",
         isYoutube: activeTab === "youtube",
       }),
-    enabled: !!debouncedInput && activeTab !== "youtube", // Prevent unnecessary requests in YouTube tab
+    enabled: !!debouncedInput && activeTab !== "youtube" && activeTab !== "scholar" , 
     staleTime: 1000 * 60 * 5,
   });
 
   useEffect(() => {
     if (data) {
-      setSearchResults(data as SearchResponse); // Ensure we're using the setter correctly
+      setSearchResults(data as SearchResponse);
     }
 
     if (error) {
       console.error("Error fetching search results:", error);
     }
-  }, [data, error, activeTab, setSearchResults]); // Added setSearchResults for completeness
+  }, [data, error, activeTab, setSearchResults]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
   };
 
   const handleSearchClick = () => {
+    if (!input) return;
     if (input) {
       setCurrentPage(1);
       refetch();
@@ -81,8 +82,8 @@ function SearchBar() {
   };
 
   const handleTabChange = (tab: "google" | "youtube" | "scholar") => {
+    setInput("");
     setTab(tab);
-    setInput(""); // Clear input on tab change
   };
 
   return (
@@ -171,7 +172,8 @@ function SearchBar() {
 
       {activeTab === "google" && searchResults.google && (
         <ResultsGoogle
-          data={searchResults.google as GoogleSearchResponse | null}
+          input={debouncedInput}
+          fetchedData={searchResults.google as GoogleSearchResponse | null}
           error={error}
           isLoading={isLoading}
         />
@@ -184,9 +186,10 @@ function SearchBar() {
       )}
       {activeTab === "scholar" && searchResults.scholar && (
         <ResultsScholar
-          input={debouncedInput} // Changed to use debouncedInput here as well
+          input={debouncedInput}
           fetchedData={searchResults.scholar as GoogleScholarApiResponse | null}
           error={error}
+          isLoading={isLoading}
         />
       )}
 
